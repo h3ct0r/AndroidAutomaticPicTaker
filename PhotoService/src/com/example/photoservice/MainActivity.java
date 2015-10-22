@@ -37,7 +37,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 	private int PHOTO_INTERVAL = 900000;
 	private final int DEFAULT_PHOTO_INTERVAL = 900000;
 	private int PHOTO_QUANTITY_PER_STEP = 1;
-	private final int DEFAULT_PHOTO_QUANTITY_PER_STEP = 15;
+	private final int DEFAULT_PHOTO_QUANTITY_PER_STEP = 1;
 	private TextView tv;
 	private long timeLastBackButtonPressed = 0L;
 	private int resPostion = 0;

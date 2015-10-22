@@ -29,4 +29,16 @@
         android:layout_alignTop="@+id/surfaceView1"
         android:text="Start taking pictures" />
 
+    <TextView
+        android:id="@+id/textGPS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textView1"
+        android:background="#FFFFFF"
+        android:ems="10"
+        android:textSize="20dp" >
+
+        <requestFocus />
+    </TextView>
+
 </RelativeLayout>

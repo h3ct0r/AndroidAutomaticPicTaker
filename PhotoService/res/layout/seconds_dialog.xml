@@ -6,7 +6,7 @@
     android:layout_centerHorizontal="true" >
 	
 	<EditText
-	     android:text="1800"
+	     android:text="5"
          android:id="@+id/seconds"
          android:layout_height="wrap_content"
          android:layout_width="match_parent"
