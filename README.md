@@ -8,6 +8,7 @@ To be used in drones, or other types of experiments.
 
 Dependencies:
 
-- Project to be imported in Eclipse
+- Project to be imported in Android Studio
 - Android
+- minSdkVersion 17
 - A phone with good battery
