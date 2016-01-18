@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
 //import com.example.rezeck.autopictakerwithgps.MainActivity.
 //import com.example.photoservice.MainActivity.PhotoTask;
@@ -34,14 +35,54 @@ public class PhotoHandler implements PictureCallback {
     private Toast mToast;
     private GpsHelper gpsHelper = null;
     //private TextView tv = null;
+    private AsctecDriver driver = null;
+    private Boolean isConnected = false;
+    private String gpsStatus;
 
     public PhotoHandler(Context context, Toast toast) {
         this.context = context;
         // this.mToast = Toast.makeText(context, "", Toast.LENGTH_SHORT);
         this.mToast = toast;
-        gpsHelper = new GpsHelper(context);
 
+        gpsStatus = "GPS is not enabled.";
+
+        gpsHelper = new GpsHelper(context);
+        if (gpsHelper.isGPSenabled()) gpsStatus =  "Using GPS phones.";
+
+        driver = new AsctecDriver();
+        gpsAsctec();
         //  this.tv = (TextView) ((Activity) context).findViewById(R.id.textGPS);
+    }
+
+    public String getGpsStatus(){
+        return gpsStatus;
+    }
+
+    public boolean gpsAsctec(){
+        Boolean success = false;
+        if (!isConnected) {
+            try {
+                driver.connect(getSerialParameters((Activity) this.context));
+                Log.d("Asctec", ">> Connected");
+                success = true;
+                gpsStatus = "Using GPS Asctec.";
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e("Asctec", e.getMessage());
+            }
+        } else {
+            try {
+                driver.disconnect();
+                Log.d("Asctec", "GPS Asctec is Disconnected.");
+                success = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e("Asctec", e.getMessage());
+            }
+        }
+        if(success) isConnected = !isConnected;
+
+        return isConnected;
     }
 
     public void setQuantityPerBurst(int quantity) {
@@ -71,23 +112,33 @@ public class PhotoHandler implements PictureCallback {
         double lat = 0;
         double lon = 0;
 
-        gpsHelper.getMyLocation();
+        double[] senseGPS = null;
 
-        if(gpsHelper.isGPSenabled()){
-            lat = gpsHelper.getLatitude();
-            lon = gpsHelper.getLongitude();
+        if (isConnected) {// GPS from Asctec drone is available
+            senseGPS = driver.senseGPS();
+        }
 
-            String debugGps = String.valueOf(lat) + " " + String.valueOf(lon);
-            //this.tv.setText(debugGps);
-            Log.d(DEBUG_TAG, debugGps);
-            mToast.setText(debugGps);
-            mToast.show();
+        gpsStatus = "GPS is not enabled.";
+
+        if (senseGPS != null) {
+            lat = senseGPS[0];
+            lon = senseGPS[1];
+            gpsStatus = "Using GPS Asctec.";
+        }else{ // GPS phones
+            gpsHelper.getMyLocation();
+
+            if(gpsHelper.isGPSenabled()){
+                lat = gpsHelper.getLatitude();
+                lon = gpsHelper.getLongitude();
+                gpsStatus = "Using GPS phones.";
+            }
         }
-        else{
-            Log.d(DEBUG_TAG, "GPS is not enabled.");
-            mToast.setText("GPS is not enabled.");
-            mToast.show();
-        }
+
+        //String debugGps = String.valueOf(lat) + " " + String.valueOf(lon);
+        //this.tv.setText(debugGps);
+        //Log.d(DEBUG_TAG, debugGps);
+        //mToast.setText(debugGps);
+        //mToast.show();
 
         (new WriteToFileTask(data, filename, lat, lon)).execute();
 
@@ -222,6 +273,20 @@ public class PhotoHandler implements PictureCallback {
             e.printStackTrace();
         }
         return loc;
+    }
+
+    private HashMap<String, Object> getSerialParameters(Activity act) {
+        HashMap<String, Object> params = new HashMap<String, Object>();
+
+        Log.i(this.getClass().getName(), "Activity -> " + act);
+
+        params.put("Activity", act);
+        params.put("baudrate", 57600);
+        params.put("dataBits", 8);
+        params.put("stopBits", 1);
+        params.put("parity", 0);
+
+        return params;
     }
 }
 

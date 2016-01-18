@@ -1,6 +1,7 @@
 package com.example.rezeck.photoservice;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import java.io.IOException;
 import java.util.List;
@@ -47,11 +48,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private List<Size> cameraSizes;
     private ImageButton mButton;
     private ImageButton stopButton;
+    private ImageButton gpsButton;
 
     private View secondsChoiceView;
     private View burstSizeChoiceView;
 
     private boolean isPaused = false;
+    private String gpsStatus = "GPS is not enabled.";
 
     private static PhotoTask pt = null;
 
@@ -161,7 +164,36 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
         });
 
+        gpsButton = (ImageButton) findViewById(R.id.btn_gps);
+        gpsButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeButtonImage();
+                ph.gpsAsctec();
+            }
+        });
+
         ph = new PhotoHandler(this, genericToast);
+        changeButtonImage();
+    }
+
+    private void changeButtonImage(){
+        if (ph != null)
+            gpsStatus = ph.getGpsStatus();
+
+        Log.d("debug", ph.getGpsStatus());
+
+        if (gpsStatus.equals("Using GPS Asctec.")){
+            gpsButton.setBackgroundResource(R.drawable.gpsasctec);
+            return;
+        }
+
+        if (gpsStatus.equals("Using GPS phones.")){
+            gpsButton.setBackgroundResource(R.drawable.gpsphone);
+            return;
+        }
+
+        gpsButton.setBackgroundResource(R.drawable.gpsempty);
     }
 
     public void startAsyncTask() {
@@ -169,6 +201,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
             public void onFinish() {
                 (new PhotoTask()).execute();
+                changeButtonImage();
             }
 
             public void onTick(long millisUntilFinished) {
@@ -180,6 +213,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width,
                                int height) {
+
         if (previewing) {
             camera.stopPreview();
             previewing = false;
@@ -205,7 +239,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         camera = Camera.open();
         Camera.Parameters parameters = camera.getParameters();
 
-        camera.stopFaceDetection();
+        // TODO: Adjust to Samsung S4
+        // image stabilization and maybe the iso
+        Log.d("debug", camera.getParameters().flatten().toString());
+        parameters.setFocusMode("continuous-picture");
 
         // parameters.setPreviewSize(surfaceView.getWidth(),
         // surfaceView.getHeight());
