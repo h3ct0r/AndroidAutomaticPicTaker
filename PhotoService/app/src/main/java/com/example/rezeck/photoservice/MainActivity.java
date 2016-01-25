@@ -76,13 +76,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         @Override
         protected void onCancelled() {
-            cancel(true);
+            Log.d("debug", "Cancelling task");
         }
 
 
         @Override
         protected void onPostExecute(final Boolean success) {
             startAsyncTask();
+
+            cancel(true);
         }
     }
 
@@ -103,9 +105,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     @Override
     public void onBackPressed() {
         long actualMiliSecs = System.currentTimeMillis();
-        if (actualMiliSecs - timeLastBackButtonPressed <= 2000)
+        if (actualMiliSecs - timeLastBackButtonPressed <= 2000) {
             this.finish();
-
+            System.exit(0);
+        }
         else {
             timeLastBackButtonPressed = System.currentTimeMillis();
             genericToast
@@ -205,6 +208,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             }
 
             public void onTick(long millisUntilFinished) {
+                //Log.d("Debug", "Seconds remaining: " + millisUntilFinished / 1000);
                 //tv.setText("Seconds remaining: " + millisUntilFinished / 1000);
             }
         }.start();
@@ -240,9 +244,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         Camera.Parameters parameters = camera.getParameters();
 
         // TODO: Adjust to Samsung S4
-        // image stabilization and maybe the iso
-        Log.d("debug", camera.getParameters().flatten().toString());
-        parameters.setFocusMode("continuous-picture");
+        //Log.d("debug", camera.getParameters().flatten().toString());
+
+        if (android.os.Build.MODEL.equals("GT-I9505")){
+            parameters.setFocusMode("infinity");
+            parameters.setSceneMode("steadyphoto");
+            Log.d("debug", "My phone is a " + android.os.Build.MODEL);
+        }
 
         // parameters.setPreviewSize(surfaceView.getWidth(),
         // surfaceView.getHeight());
@@ -291,6 +299,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                         } catch (Exception e) {
                             PHOTO_INTERVAL = DEFAULT_PHOTO_INTERVAL;
                         }
+                        Log.d("Debug", "PHOTO_INTERVAL: " + PHOTO_INTERVAL / 1000);
                         return;
                     }
                 });
@@ -339,6 +348,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         burstDialog.show();
 
         camera.setParameters(parameters);
+        Log.d("debug", camera.getParameters().getFocusMode());
+        Log.d("debug", camera.getParameters().getSceneMode());
+
     }
 
     @Override

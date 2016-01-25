@@ -163,7 +163,7 @@ public class PhotoHandler implements PictureCallback {
         int month = cal.get(Calendar.MONTH) + 1;
         int day = cal.get(Calendar.DAY_OF_MONTH);
 
-        return new File("/sdcard/DCIM", "test_GPS_" + String.valueOf(day) + "-"
+        return new File(sdDir, "test_GPS_" + String.valueOf(day) + "-"
                 + String.valueOf(month) + "-" + String.valueOf(year));
     }
 
