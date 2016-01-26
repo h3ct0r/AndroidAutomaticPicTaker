@@ -28,6 +28,9 @@
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
+    <uses-feature android:name="android.hardware.sensor.accelerometer"
+        android:required="true" />
+
     <uses-feature android:name="android.hardware.usb.host" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
