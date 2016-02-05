@@ -1,8 +1,5 @@
 package com.example.rezeck.photoservice;
 
-import android.content.Context;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -61,7 +58,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private String gpsStatus = "GPS is not enabled.";
 
     private static PhotoTask pt = null;
-    private  SensorLog sensorLog;
 
     public class PhotoTask extends AsyncTask<Void, Void, Boolean> {
         public PhotoTask() {
@@ -112,7 +108,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     public void onBackPressed() {
         long actualMiliSecs = System.currentTimeMillis();
         if (actualMiliSecs - timeLastBackButtonPressed <= 2000) {
-            sensorLog.cancel();
             this.finish();
             System.exit(0);
         }
@@ -186,7 +181,6 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         ph = new PhotoHandler(this, genericToast);
         changeButtonImage();
 
-        sensorLog = (new SensorLog(this));
     }
 
     private void changeButtonImage(){
