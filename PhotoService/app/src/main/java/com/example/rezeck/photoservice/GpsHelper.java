@@ -23,6 +23,7 @@ public class GpsHelper implements LocationListener {
     private Location location;
     private double latitude;
     private double longitude;
+    private double altitude;
 
     public GpsHelper(Context context) {
         this.context = context;
@@ -45,6 +46,7 @@ public class GpsHelper implements LocationListener {
         if (l != null) {
             latitude = l.getLatitude();
             longitude = l.getLongitude();
+            altitude = l.getAltitude();
         }
     }
 
@@ -73,10 +75,19 @@ public class GpsHelper implements LocationListener {
         return longitude;
     }
 
+    /**
+     * Function to get GPS altitude
+     */
+    public double getAltitude() {
+        return altitude;
+    }
+
+
     @Override
     public void onLocationChanged(Location location) {
         this.latitude = location.getLatitude();
         this.longitude = location.getLongitude();
+        this.altitude = location.getAltitude();
     }
 
     @Override

@@ -111,6 +111,7 @@ public class PhotoHandler implements PictureCallback {
 
         double lat = 0;
         double lon = 0;
+        double alt = 0;
 
         double[] senseGPS = null;
 
@@ -123,6 +124,7 @@ public class PhotoHandler implements PictureCallback {
         if (senseGPS != null) {
             lat = senseGPS[0];
             lon = senseGPS[1];
+            alt = senseGPS[2];
             gpsStatus = "Using GPS Asctec.";
         }else{ // GPS phones
             gpsHelper.getMyLocation();
@@ -130,17 +132,18 @@ public class PhotoHandler implements PictureCallback {
             if(gpsHelper.isGPSenabled()){
                 lat = gpsHelper.getLatitude();
                 lon = gpsHelper.getLongitude();
+                alt = gpsHelper.getAltitude();
                 gpsStatus = "Using GPS phones.";
             }
         }
 
         //String debugGps = String.valueOf(lat) + " " + String.valueOf(lon);
         //this.tv.setText(debugGps);
-        //Log.d(DEBUG_TAG, debugGps);
+
         //mToast.setText(debugGps);
         //mToast.show();
 
-        (new WriteToFileTask(data, filename, lat, lon)).execute();
+        (new WriteToFileTask(data, filename, lat, lon, alt)).execute();
 
         photoCounter++;
         if (photoCounter < quantityPerStep) {
@@ -174,12 +177,14 @@ public class PhotoHandler implements PictureCallback {
         private String errorMsg = "";
         double lat = 0;
         double lon = 0;
+        double alt = 0;
 
-        public WriteToFileTask(byte[] data, String path, double lat, double lon) {
+        public WriteToFileTask(byte[] data, String path, double lat, double lon, double alt) {
             this.data = data;
             this.picturePath = path;
             this.lat = lat;
             this.lon = lon;
+            this.alt = alt;
         }
 
         @Override
@@ -190,7 +195,7 @@ public class PhotoHandler implements PictureCallback {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 fos.write(data);
                 fos.close();
-                MarkGeoTagImage(this.picturePath, this.lat, this.lon);
+                MarkGeoTagImage(this.picturePath, this.lat, this.lon, this.alt);
             } catch (Exception error) {
                 Log.d(DEBUG_TAG, "File" + this.picturePath + "not saved: "
                         + error.getMessage());
@@ -222,17 +227,21 @@ public class PhotoHandler implements PictureCallback {
          * @param imagePath : image absolute path
          * @return : location information
          */
-        public void MarkGeoTagImage(String imagePath, double lat, double lon) {
+        public void MarkGeoTagImage(String imagePath, double lat, double lon, double alt) {
             try {
                 ExifInterface exif = new ExifInterface(imagePath);
                 exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE,
                         GPS.convert(lat));
                 exif.setAttribute(ExifInterface.TAG_GPS_LATITUDE_REF,
                         GPS.latitudeRef(lat));
+
                 exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE,
                         GPS.convert(lon));
                 exif.setAttribute(ExifInterface.TAG_GPS_LONGITUDE_REF,
                         GPS.longitudeRef(lon));
+
+                exif.setAttribute(ExifInterface.TAG_GPS_ALTITUDE,
+                        GPS.convert(alt));
 
                 exif.saveAttributes();
             } catch (IOException e) {
