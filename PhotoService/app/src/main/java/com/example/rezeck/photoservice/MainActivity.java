@@ -5,6 +5,8 @@ import android.util.Log;
 import android.view.View;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.annotation.SuppressLint;
@@ -23,6 +25,7 @@ import android.view.SurfaceView;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.Gallery;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -37,22 +40,22 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private boolean previewing = false;
     private PhotoHandler ph;
     private int PHOTO_INTERVAL = 900000;
-    private final int DEFAULT_PHOTO_INTERVAL = 900000;
-    private int PHOTO_QUANTITY_PER_STEP = 1;
-    private final int DEFAULT_PHOTO_QUANTITY_PER_STEP = 1;
+    //private final int DEFAULT_PHOTO_INTERVAL = 900000;
+    //private int PHOTO_QUANTITY_PER_STEP = 1;
+    //private final int DEFAULT_PHOTO_QUANTITY_PER_STEP = 1;
     private TextView tv;
     private long timeLastBackButtonPressed = 0L;
     private int resPostion = 0;
     private AlertDialog.Builder singlechoicedialog;
-    private AlertDialog.Builder secondsIntervalDialog;
-    private AlertDialog.Builder burstPerShootDialog;
+    //private AlertDialog.Builder secondsIntervalDialog;
+    //private AlertDialog.Builder burstPerShootDialog;
     private List<Size> cameraSizes;
     private ImageButton mButton;
     private ImageButton stopButton;
     private ImageButton gpsButton;
 
-    private View secondsChoiceView;
-    private View burstSizeChoiceView;
+    //private View secondsChoiceView;
+    //private View burstSizeChoiceView;
 
     private boolean isPaused = false;
     private String gpsStatus = "GPS is not enabled.";
@@ -60,17 +63,26 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     private static PhotoTask pt = null;
 
     public class PhotoTask extends AsyncTask<Void, Void, Boolean> {
+        public boolean isrunning = true;
+
         public PhotoTask() {
+            isrunning = true;
         }
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            if (camera != null) {
-                if (!isPaused){
-                    camera.takePicture(myShutterCallback, myPictureCallback_RAW, ph);
-                    //camera.startPreview();
-                    previewing = true;
+            ph.canTakePhoto = true;
+            while (isrunning){
+                if (camera != null && ph.canTakePhoto) {
+                    if (!isPaused){
+                        ph.mytimer = System.nanoTime();
+                        ph.canTakePhoto = false;
+                        camera.takePicture(myShutterCallback, myPictureCallback_RAW, ph);
+                        //camera.startPreview();
+                        previewing = true;
+                    }
                 }
+
             }
             return true;
         }
@@ -83,9 +95,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         @Override
         protected void onPostExecute(final Boolean success) {
-            startAsyncTask();
-
-            cancel(true);
+            //startAsyncTask();
+            //cancel(true);
         }
     }
 
@@ -108,6 +119,8 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     public void onBackPressed() {
         long actualMiliSecs = System.currentTimeMillis();
         if (actualMiliSecs - timeLastBackButtonPressed <= 2000) {
+            pt.isrunning = false;
+            pt.cancel(true);
             this.finish();
             System.exit(0);
         }
@@ -135,15 +148,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         surfaceHolder = surfaceView.getHolder();
         surfaceHolder.addCallback(this);
 
-        //tv = (TextView) findViewById(R.id.textView1);
-
         singlechoicedialog = new AlertDialog.Builder(this);
-        secondsIntervalDialog = new AlertDialog.Builder(this);
-        burstPerShootDialog = new AlertDialog.Builder(this);
+       // secondsIntervalDialog = new AlertDialog.Builder(this);
+       // burstPerShootDialog = new AlertDialog.Builder(this);
 
         LayoutInflater factory = LayoutInflater.from(this);
-        secondsChoiceView = factory.inflate(R.layout.seconds_dialog, null);
-        burstSizeChoiceView = factory.inflate(R.layout.burst_size_dialog, null);
+       // secondsChoiceView = factory.inflate(R.layout.seconds_dialog, null);
+       // burstSizeChoiceView = factory.inflate(R.layout.burst_size_dialog, null);
 
         mButton = (ImageButton) findViewById(R.id.button1);
         mButton.setOnClickListener(new OnClickListener() {
@@ -151,6 +162,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
             public void onClick(View v) {
                 mButton.setVisibility(View.GONE);
                 stopButton.setVisibility(View.VISIBLE);
+
                 if (pt == null){
                     pt = (new PhotoTask());
                     pt.execute();
@@ -206,7 +218,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         new CountDownTimer(PHOTO_INTERVAL, 1000) {
 
             public void onFinish() {
-                (new PhotoTask()).execute();
+               // (new PhotoTask()).execute();
                 changeButtonImage();
             }
 
@@ -223,6 +235,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
 
         if (previewing) {
             camera.stopPreview();
+
             previewing = false;
         }
 
@@ -246,10 +259,15 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         camera = Camera.open();
         Camera.Parameters parameters = camera.getParameters();
 
-        // TODO: Adjust to Samsung S4
+
         //Log.d("debug", camera.getParameters().flatten().toString());
 
+        parameters.setFocusMode("infinity");
+        parameters.setSceneMode("landscape");
+
+
         if (android.os.Build.MODEL.equals("GT-I9505")){
+            // Adjust to Samsung S4
             parameters.setFocusMode("infinity");
             parameters.setSceneMode("steadyphoto");
             Log.d("debug", "My phone is a " + android.os.Build.MODEL);
@@ -287,7 +305,7 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
         alert_dialog.show();
         alert_dialog.getListView().setItemChecked(resPostion, true);
 
-        secondsIntervalDialog.setTitle("Define seconds to shoot interval ");
+        /*secondsIntervalDialog.setTitle("Define seconds to shoot interval ");
         secondsIntervalDialog.setMessage("Enter seconds :");
         secondsIntervalDialog.setView(secondsChoiceView);
         secondsIntervalDialog.setPositiveButton("Ok",
@@ -316,9 +334,9 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 });
 
         AlertDialog textDialog = secondsIntervalDialog.create();
-        textDialog.show();
+        textDialog.show();*/
 
-        burstPerShootDialog.setTitle("Define burst number ");
+        /*burstPerShootDialog.setTitle("Define burst number ");
         burstPerShootDialog.setMessage("Enter number of photos taken by every burst :");
         burstPerShootDialog.setView(burstSizeChoiceView);
         burstPerShootDialog.setPositiveButton("Ok",
@@ -348,11 +366,13 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
                 });
 
         AlertDialog burstDialog = burstPerShootDialog.create();
-        burstDialog.show();
+        burstDialog.show();*/
 
         camera.setParameters(parameters);
-        Log.d("debug", camera.getParameters().getFocusMode());
-        Log.d("debug", camera.getParameters().getSceneMode());
+
+        Log.d("debug", "Focus Mode: " + camera.getParameters().getFocusMode());
+        Log.d("debug", "Scene Mode: " + camera.getParameters().getSceneMode());
+        Log.d("debug", "Scene Mode Suport: " + camera.getParameters().getSupportedSceneModes());
 
     }
 

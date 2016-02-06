@@ -34,10 +34,15 @@ public class PhotoHandler implements PictureCallback {
     private Integer photoCounter = 0;
     private Toast mToast;
     private GpsHelper gpsHelper = null;
-    //private TextView tv = null;
     private AsctecDriver driver = null;
     private Boolean isConnected = false;
     private String gpsStatus;
+
+    public long mytimer = 0;
+    private TextView tvSaver;
+    private TextView tvGPS;
+    private File pictureFileDir;
+    public boolean canTakePhoto = true;
 
     public PhotoHandler(Context context, Toast toast) {
         this.context = context;
@@ -50,8 +55,14 @@ public class PhotoHandler implements PictureCallback {
         if (gpsHelper.isGPSenabled()) gpsStatus =  "Using GPS phones.";
 
         driver = new AsctecDriver();
+
+        pictureFileDir = getDir();
+        Activity a = (Activity) context;
+        tvSaver = (TextView) a.findViewById(R.id.textViewSaver);
+        tvGPS = (TextView) a.findViewById(R.id.textViewGPS);
+
         gpsAsctec();
-        //  this.tv = (TextView) ((Activity) context).findViewById(R.id.textGPS);
+
     }
 
     public String getGpsStatus(){
@@ -91,14 +102,11 @@ public class PhotoHandler implements PictureCallback {
 
     @Override
     public void onPictureTaken(byte[] data, Camera camera) {
-
-        File pictureFileDir = getDir();
+        Log.d("debug", "Tempo ate fornecer 'data': "+ (System.nanoTime() - this.mytimer)/1e+9 + " segundos" );
 
         if (!pictureFileDir.exists() && !pictureFileDir.mkdirs()) {
-
             Log.d(DEBUG_TAG, "Can't create directory to save image.");
-            mToast.setText("Can't create directory to save image.");
-            mToast.show();
+            tvSaver.setText("Can't create directory to save image.");
             return;
 
         }
@@ -137,21 +145,19 @@ public class PhotoHandler implements PictureCallback {
             }
         }
 
-        //String debugGps = String.valueOf(lat) + " " + String.valueOf(lon);
-        //this.tv.setText(debugGps);
+        tvGPS.setText("Latitude: " + lat + "\nLongitude: " + lon + "\nAltitude: " + alt);
 
-        //mToast.setText(debugGps);
-        //mToast.show();
+        (new WriteToFileTask(data, filename, lat, lon, alt)).executeOnExecutor(WriteToFileTask.THREAD_POOL_EXECUTOR);
+        Log.d("debug", "Tempo ate enviar foto para ser salva: " + (System.nanoTime() - this.mytimer) / 1e+9 + " segundos");
+        this.canTakePhoto = true;
 
-        (new WriteToFileTask(data, filename, lat, lon, alt)).execute();
-
-        photoCounter++;
+        /*photoCounter++;
         if (photoCounter < quantityPerStep) {
             camera.startPreview();
             camera.takePicture(null, null, this);
         } else {
             photoCounter = 0;
-        }
+        }*/
         camera.startPreview();
     }
 
@@ -195,29 +201,37 @@ public class PhotoHandler implements PictureCallback {
                 FileOutputStream fos = new FileOutputStream(pictureFile);
                 fos.write(data);
                 fos.close();
+                //Log.d("debug", "Tempo para salvar a foto: " + (System.nanoTime() - t) / 1e+9 + " segundos");
                 MarkGeoTagImage(this.picturePath, this.lat, this.lon, this.alt);
+                //Log.d("debug", "Tempo para salvar a foto + exif: " + (System.nanoTime() - t) / 1e+9 + " segundos");
             } catch (Exception error) {
                 Log.d(DEBUG_TAG, "File" + this.picturePath + "not saved: "
                         + error.getMessage());
                 this.errorMsg = error.getMessage();
+
                 return false;
             }
+            //Log.d("debug", "Tempo completo para salvar a foto: " + (System.nanoTime() - t)/1e+9 +" segundos");
             return true;
         }
 
         @Override
         protected void onPostExecute(final Boolean success) {
             if (success) {
-                mToast.setText("New Image saved:" + this.picturePath);
-                mToast.show();
+                //mToast.setText("New Image saved:" + this.picturePath);
+                //mToast.show();
+                tvSaver.setText("New Image saved:" + this.picturePath);
             } else {
-                mToast.setText("Image could not be saved. " + this.errorMsg);
-                mToast.show();
+                //mToast.setText("Image could not be saved. " + this.errorMsg);
+                //mToast.show();
+                tvSaver.setText("Image could not be saved. " + this.errorMsg);
             }
+            this.cancel(true);
         }
 
         @Override
         protected void onCancelled() {
+            Log.d("debug", "task canceled!");
 
         }
 
