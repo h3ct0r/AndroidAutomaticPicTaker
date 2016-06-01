@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main"><source path="/home/rezeck/Copy/Projetos/Android/AndroidAutomaticPicTaker/PhotoService/usbSerialForAndroid/src/main/assets"/></dataSet><dataSet config="release"><source path="/home/rezeck/Copy/Projetos/Android/AndroidAutomaticPicTaker/PhotoService/usbSerialForAndroid/src/release/assets"/></dataSet></merger>
+<merger version="3"><dataSet config="main"><source path="/Users/h3ct0r/Git/222/AndroidAutomaticPicTaker/PhotoService/usbSerialForAndroid/src/main/assets"/></dataSet><dataSet config="release"><source path="/Users/h3ct0r/Git/222/AndroidAutomaticPicTaker/PhotoService/usbSerialForAndroid/src/release/assets"/></dataSet></merger>

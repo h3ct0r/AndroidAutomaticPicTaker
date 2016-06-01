@@ -1,14 +1,5 @@
 package com.example.rezeck.photoservice;
 
-import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import android.os.AsyncTask;
-import android.os.CountDownTimer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -19,16 +10,22 @@ import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.ShutterCallback;
 import android.hardware.Camera.Size;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
-import android.widget.EditText;
-import android.widget.Gallery;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.IOException;
+import java.util.List;
 
 
 public class MainActivity extends Activity implements SurfaceHolder.Callback {
@@ -119,8 +116,10 @@ public class MainActivity extends Activity implements SurfaceHolder.Callback {
     public void onBackPressed() {
         long actualMiliSecs = System.currentTimeMillis();
         if (actualMiliSecs - timeLastBackButtonPressed <= 2000) {
-            pt.isrunning = false;
-            pt.cancel(true);
+            if(pt != null) {
+                pt.isrunning = false;
+                pt.cancel(true);
+            }
             this.finish();
             System.exit(0);
         }
